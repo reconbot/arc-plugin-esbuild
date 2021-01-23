@@ -7,11 +7,11 @@ let Bundler = require('parcel-bundler')
 /**
  * bundle functions with parcel
  */
-module.exports = async function macro(arc, cfn, stage) {
+module.exports = async function macro(arc, cfn, stage, inventory) {
   if (arc.src) {
-
+    let projectDir = inventory.inv._project.src
     let src = arc.parcel.outDir || 'dist'
-    let fullPath = path.join(process.cwd(), src)
+    let fullPath = path.join(projectDir, src)
     if (!fs.pathExistsSync(fullPath) && process.env.NODE_ENV != 'testing')
       throw ReferenceError('Path not found: ' + fullPath)
 
@@ -25,14 +25,16 @@ module.exports = async function macro(arc, cfn, stage) {
     for (let fun of funs) {
       let uri = cfn.Resources[fun].Properties.CodeUri
 
-      if (uri[0] !== '.') continue
+      // some routes, like GetCatchallHTTPLambda, are built into arc (see
+      // npmjs.com/package/@architect/asap
+      if (uri.includes('node_modules')) continue
 
       let update = updater('Parcel', {})
       let relativePath = uri.replace(/^\.+\//, '')
       update.start(`Bundling ${relativePath}`)
 
       let entry = path.join(uri, 'index.[jt]s')
-      let code = uri.replace('src', src)
+      let code = uri.replace(path.join(projectDir, 'src'), path.join(projectDir, src))
 
       fs.ensureDirSync(code)
 
