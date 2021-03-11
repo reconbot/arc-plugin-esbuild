@@ -8,6 +8,15 @@
 npm i @copper/plugin-parcel
 ```
 
+## Known Issue(s)
+
+⚠️ Due to the way parcel flattens directory structures, if you only have one
+directory under `src/` (i.e. only `src/http`), this plugin won't work. You need
+at least two directories under `src/` with at least one `.ts` file within them
+(or in a further subtree below those directories) for the expected directory
+structure to be maintained. This is why the sample app has both `@events` and
+`@http` pragmas in it (to work around this issue).
+
 ## Usage
 
 After installing add `@plugins` and `@parcel` pragmas to your `app.arc` file:
