@@ -19,8 +19,8 @@ module.exports = {
             let projectDir = inventory.inv._project.src;
             let src = Array.isArray(arc.src) ? arc.src[0] : 'dist';
             let fullPath = path.join(projectDir, src);
-            if (!fs.pathExistsSync(fullPath) && process.env.NODE_ENV != 'testing')
-                throw ReferenceError('Path not found: ' + fullPath);
+            if (!fs.pathExistsSync(fullPath))
+                fs.mkdirpSync(fullPath);
 
             fs.emptyDirSync(fullPath);
             let options = getOptions(arc);

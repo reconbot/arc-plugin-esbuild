@@ -5,6 +5,9 @@ plugin-parcel-demo
 get /
 get /hi
 
+@events
+foo
+
 @static
 fingerprint true
 
