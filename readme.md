@@ -48,4 +48,8 @@ shuts down.
 Running `arc deploy` will bundle all functions using parcel into your
 `outDir`-specified folder instead of `./src`.
 
+## Sample Application
 
+There is a sample application located under `sample-app/`. `cd` into that
+directory, `npm install` and you can run locally via `arc sandbox` or deploy to
+the internet via `arc deploy`.
