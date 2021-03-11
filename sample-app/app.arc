@@ -18,5 +18,5 @@ data
 @plugins
 copper/plugin-parcel
 
-@src
-dist
+@parcel
+outDir dist

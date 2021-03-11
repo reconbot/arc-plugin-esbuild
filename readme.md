@@ -1,18 +1,16 @@
-# arc-macro-parcel
+# plugin-parcel
 
-Bundle functions in Architect projects with parcel
-
-TODO: warn about the stupid flattening directory structure parcel does.
+> Arc serverless framework (arc.codes) plugin for compiling your functions with Parcel Bundler
 
 ## Install
 
 ```bash
-npm i arc-macro-parcel
+npm i @copper/plugin-parcel
 ```
 
-### Usage
+## Usage
 
-After installing add something the following to the `.arc` file:
+After installing add `@plugins` and `@parcel` pragmas to your `app.arc` file:
 
 ```arc
 @app
@@ -20,14 +18,34 @@ myapp
 
 @parcel
 outDir dist
-minify true
 
 @http
 get /
 
-@macros
-arc-macro-parcel
+@plugins
+copper/plugin-parcel
 ```
 
-Running `arc deploy` will bundle all functions using parcel then
-deploy the `./dist` folder instead of `./src`.
+### Options
+
+This plugin supports the following options under the `@parcel` pragma:
+
+|Option|Description|Example|
+|---|---|---|
+|`outDir`|**Required**. The directory to write the bundled files to. This directory will be used at deploy-time before bundling your functions for deployment.|`outDir dist`|
+
+### Sandbox
+
+Running `arc sandbox` kicks up the local development server Architect provides.
+This plugin hooks into sandbox execution to watch and compile any typescript
+files located under your project's `src/` directory (using the glob
+`./src/**/*.ts`). It will create `index.js` files in each of your arc project's
+Lambda function folders on sandbox startup, and will remove those when sandbox
+shuts down.
+
+### Deploy
+
+Running `arc deploy` will bundle all functions using parcel into your
+`outDir`-specified folder instead of `./src`.
+
+

@@ -15,15 +15,16 @@ let entryPoints = [];
  */
 module.exports = {
     package: async function macro ({ arc, cloudformation: cfn, inventory }) {
-        if (arc.src) {
+        if (arc.parcel) {
             let projectDir = inventory.inv._project.src;
-            let src = Array.isArray(arc.src) ? arc.src[0] : 'dist';
-            let fullPath = path.join(projectDir, src);
-            if (!fs.pathExistsSync(fullPath))
-                fs.mkdirpSync(fullPath);
-
-            fs.emptyDirSync(fullPath);
             let options = getOptions(arc);
+            if (!options.outDir) throw 'no parcel outDir options specified!';
+            let fullSrcPath = path.join(projectDir, 'src');
+            let fullOutPath = path.join(projectDir, options.outDir);
+            if (!fs.pathExistsSync(fullOutPath))
+                fs.mkdirpSync(fullOutPath);
+
+            fs.emptyDirSync(fullOutPath);
 
             let funs = Object.keys(cfn.Resources).filter(name => {
                 let type = cfn.Resources[name].Type;
@@ -41,7 +42,7 @@ module.exports = {
                 update.start(`Bundling ${relativePath}`);
 
                 let entry = path.join(uri, 'index.[jt]s');
-                let code = uri.replace(path.join(projectDir, 'src'), path.join(projectDir, src));
+                let code = uri.replace(fullSrcPath, fullOutPath);
 
                 if (!options.bundleNodeModules) {
                     fs.copySync(
@@ -63,7 +64,7 @@ module.exports = {
     },
     sandbox: {
         start: function parcelSandboxStart ({ arc }, callback) {
-            if (arc.src) {
+            if (arc.parcel) {
                 let hasCalledBack = false;
                 const entry = join('.', 'src', '**', 'index.ts');
                 update.status('starting up watch process...');
