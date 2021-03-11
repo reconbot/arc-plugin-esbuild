@@ -1,0 +1,17 @@
+{
+  "name": "plugin-parcel-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "test.js",
+  "dependencies": {
+    "@architect/architect": "^8.5.0-RC.3"
+  },
+  "devDependencies": {
+    "typescript": "^4.2.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Copper Inc.",
+  "license": "ISC"
+}

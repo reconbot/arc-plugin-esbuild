@@ -2,6 +2,8 @@
 
 Bundle functions in Architect projects with parcel
 
+TODO: warn about the stupid flattening directory structure parcel does.
+
 ## Install
 
 ```bash
