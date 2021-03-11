@@ -1,5 +1,5 @@
 {
-  "name": "plugin-parcel",
+  "name": "@copper/plugin-parcel",
   "version": "1.0.0",
   "description": "Architect serverless framework (arc.codes) plugin to bundle functions with parcel",
   "main": "index.js",
