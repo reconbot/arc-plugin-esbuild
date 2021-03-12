@@ -18,13 +18,15 @@ module.exports = {
         if (arc.parcel) {
             let projectDir = inventory.inv._project.src;
             let options = getOptions(arc);
+            // validate options
             if (!options.outDir) throw 'no parcel outDir options specified!';
+            // create and/or clean out the output directory
             let fullSrcPath = path.join(projectDir, 'src');
             let fullOutPath = path.join(projectDir, options.outDir);
             if (!fs.pathExistsSync(fullOutPath))
                 fs.mkdirpSync(fullOutPath);
-
             fs.emptyDirSync(fullOutPath);
+            let entryFile = options.entry || 'index.ts';
 
             let funs = Object.keys(cfn.Resources).filter(name => {
                 let type = cfn.Resources[name].Type;
@@ -41,7 +43,7 @@ module.exports = {
                 let relativePath = uri.replace(/^\.+\//, '');
                 update.start(`Bundling ${relativePath}`);
 
-                let entry = path.join(uri, 'index.[jt]s');
+                let entry = path.join(uri, entryFile);
                 let code = uri.replace(fullSrcPath, fullOutPath);
 
                 if (!options.bundleNodeModules) {
@@ -66,7 +68,9 @@ module.exports = {
         start: function parcelSandboxStart ({ arc }, callback) {
             if (arc.parcel) {
                 let hasCalledBack = false;
-                const entry = join('.', 'src', '**', 'index.ts');
+                let options = getOptions(arc);
+                let entryFile = options.entry || 'index.ts';
+                const entry = join('.', 'src', '**', entryFile);
                 update.status('starting up watch process...');
                 parcelWatchProcess = cp.spawn('parcel', [ 'watch', "'" + entry + "'", '-d', 'src', '--target', 'node', '--out-file', 'index.js', '--no-source-maps', '--no-hmr' ], {
                     cwd: process.cwd(),
@@ -94,7 +98,8 @@ module.exports = {
                 });
                 parcelWatchProcess.stderr.on('data', data => update.error(data));
                 // glob all entry points so we can clean them up on close
-                entryPoints = glob.sync('./src/**/*.ts', { ignore: './src/**/node_modules/**' }).map(p => p.replace(/ts$/, 'js'));
+                let globEntry = entryFile.replace(/\..+$/i, '.js');
+                entryPoints = glob.sync(`./src/**/${globEntry}`, { ignore: './src/**/node_modules/**' }).map(p => p.replace(/ts$/, 'js'));
             }
             else callback();
         },

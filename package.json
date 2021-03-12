@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "@architect/utils": "^1.5.1",
+    "babel-plugin-module-resolver": "^4.1.0",
     "fs-extra": "^9.0.0",
     "glob": "^7.1.6",
     "parcel-bundler": "1.12.3"
