@@ -10,7 +10,9 @@ const originalCwd = process.cwd();
 
 describe('plugin-parcel', () => {
     let inv = {};
+    let origInv = {};
     let arc = {};
+    let origArc = {};
     beforeAll(async () => {
         // Set up integration test directory as a copy of sample app
         const appPluginDir = join(appDir, 'node_modules', '@copper', 'plugin-parcel');
@@ -19,12 +21,16 @@ describe('plugin-parcel', () => {
         await fs.copy(join(__dirname, '..', 'index.js'), join(appPluginDir, 'index.js'));
         await fs.copy(join(__dirname, '..', 'run-parcel.js'), join(appPluginDir, 'run-parcel.js'));
         process.chdir(appDir);
-        inv = await inventory({});
-        arc = inv.inv._project.arc;
+        origInv = await inventory({});
+        origArc = origInv.inv._project.arc;
     });
     afterAll(async () => {
         process.chdir(originalCwd);
         await fs.remove(appDir);
+    });
+    beforeEach(() => {
+        inv = origInv;
+        arc = origArc;
     });
     describe('cloudformation packaging', () => {
         beforeEach(() => {
