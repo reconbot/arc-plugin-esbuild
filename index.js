@@ -1,4 +1,3 @@
-let path = require('path');
 let fs = require('fs-extra');
 let cp = require('child_process');
 let { updater } = require('@architect/utils');
@@ -21,8 +20,8 @@ module.exports = {
             // validate options
             if (!options.outDir) throw 'no parcel outDir options specified!';
             // create and/or clean out the output directory
-            let fullSrcPath = path.join(projectDir, 'src');
-            let fullOutPath = path.join(projectDir, options.outDir);
+            let fullSrcPath = join(projectDir, 'src');
+            let fullOutPath = join(projectDir, options.outDir);
             if (!fs.pathExistsSync(fullOutPath))
                 fs.mkdirpSync(fullOutPath);
             fs.emptyDirSync(fullOutPath);
@@ -43,13 +42,13 @@ module.exports = {
                 let relativePath = uri.replace(/^\.+\//, '');
                 update.start(`Bundling ${relativePath}`);
 
-                let entry = path.join(uri, entryFile);
+                let entry = join(uri, entryFile);
                 let code = uri.replace(fullSrcPath, fullOutPath);
 
                 if (!options.bundleNodeModules) {
                     fs.copySync(
-                        path.join(uri, 'node_modules'),
-                        path.join(code, 'node_modules')
+                        join(uri, 'node_modules'),
+                        join(code, 'node_modules')
                     );
                 }
 
@@ -71,8 +70,9 @@ module.exports = {
                 let options = getOptions(arc);
                 let entryFile = options.entry || 'index.ts';
                 const entry = join('.', 'src', '**', entryFile);
+                const args = [ 'watch', "'" + entry + "'", '-d', 'src', '--target', 'node', '--out-file', 'index.js', '--no-source-maps', '--no-hmr' ];
                 update.status('starting up watch process...');
-                parcelWatchProcess = cp.spawn('parcel', [ 'watch', "'" + entry + "'", '-d', 'src', '--target', 'node', '--out-file', 'index.js', '--no-source-maps', '--no-hmr' ], {
+                parcelWatchProcess = cp.spawn('parcel', args, {
                     cwd: process.cwd(),
                     shell: true
                 });
@@ -80,7 +80,12 @@ module.exports = {
                     if (!hasCalledBack) {
                         hasCalledBack = true;
                         if (!err && msg) {
-                            if (msg.includes('Built in')) callback();
+                            if (msg.includes('Built in')) {
+                                // glob all entry points so we can clean them up on close
+                                let globEntry = entryFile.replace(/\..+$/i, '.js');
+                                entryPoints = glob.sync(`./src/**/${globEntry}`, { ignore: [ './src/**/node_modules/**', './src/plugins/**' ] }).map(p => p.replace(/ts$/, 'js'));
+                                callback();
+                            }
                         }
                         else {
                             callback(err);
@@ -97,9 +102,6 @@ module.exports = {
                     done(null, data);
                 });
                 parcelWatchProcess.stderr.on('data', data => update.error(data));
-                // glob all entry points so we can clean them up on close
-                let globEntry = entryFile.replace(/\..+$/i, '.js');
-                entryPoints = glob.sync(`./src/**/${globEntry}`, { ignore: './src/**/node_modules/**' }).map(p => p.replace(/ts$/, 'js'));
             }
             else callback();
         },
