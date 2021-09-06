@@ -7,7 +7,7 @@ Bundles arc functions with [esbuild](https://esbuild.github.io/), includes depen
 ## Install
 
 ```bash
-npm i arc-plugin-esbuild
+npm i --save-dev arc-plugin-esbuild
 ```
 
 ## Usage
@@ -36,6 +36,15 @@ myapp/app.arc
 myapp/package.json
 myapp/tsconfig.json
 myapp/src/http/get-index/index.ts
+```
+
+It's also worth ignoring the build artifacts.
+
+```gitignore
+#.gitignore
+
+src/**/*.js
+.esbuild
 ```
 
 ### Options
@@ -81,7 +90,6 @@ the internet via `arc deploy`.
 application manifest**. If you run this plugin before another plugin that creates
 Lambdas, then the Lambda function code from the plugin will not be bundled.
 
-### Mixing and Matching JS and TS `entryFile`s
+### Mixing and Matching JS and TS `entryFile`
 
 Mixing and matching JS and TS index files wont work. The `entryFile` must be the same for all functions.
-
