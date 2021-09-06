@@ -10,19 +10,6 @@ Bundles arc functions with [esbuild](https://esbuild.github.io/), includes depen
 npm i arc-plugin-esbuild
 ```
 
-## ⚠️ Known Issues
-
-### Order of Arc Plugins Matter
-
-**You probably want to list this plugin last under the `@plugins` section of your
-`app.arc` because plugins are executed in the order that they appear in your
-application manifest**. If you run this plugin before another plugin that creates
-Lambdas, then the Lambda function code from the plugin will not be bundled.
-
-### Mixing and Matching JS and TS `entryFile`s
-
-Mixing and matching JS and TS index files wont work. The `entryFile` must be the same for all functions.
-
 ## Usage
 
 After installing add `@plugins` and `@esbuild` pragmas to your `app.arc` file:
@@ -84,3 +71,17 @@ deploying your functions to AWS.
 There is a sample application located under `sample-app/`. `cd` into that
 directory, `npm install` and you can run locally via `arc sandbox` or deploy to
 the internet via `arc deploy`.
+
+## ⚠️ Known Issues
+
+### Order of Arc Plugins Matter
+
+**You probably want to list this plugin last under the `@plugins` section of your
+`app.arc` because plugins are executed in the order that they appear in your
+application manifest**. If you run this plugin before another plugin that creates
+Lambdas, then the Lambda function code from the plugin will not be bundled.
+
+### Mixing and Matching JS and TS `entryFile`s
+
+Mixing and matching JS and TS index files wont work. The `entryFile` must be the same for all functions.
+
