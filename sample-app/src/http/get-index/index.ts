@@ -1,15 +1,15 @@
-let arc = require('@architect/functions');
+import arc from '@architect/functions'
 
 async function getIndex () {
-    let tables = await arc.tables();
-    let data = tables.data;
-    let items = await data.scan({});
-    return {
-        headers: {
-            'cache-control': 'no-cache, no-store, must-revalidate, max-age=0, s-maxage=0',
-            'content-type': 'text/html; charset=utf8'
-        },
-        body: `
+  const tables = await arc.tables()
+  const data = tables.data
+  const items = await data.scan({})
+  return {
+    headers: {
+      'cache-control': 'no-cache, no-store, must-revalidate, max-age=0, s-maxage=0',
+      'content-type': 'text/html; charset=utf8',
+    },
+    body: `
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -26,8 +26,8 @@ async function getIndex () {
     ${JSON.stringify(items, null, 2)}
     </code></pre>
     </body>
-    </html>`
-    };
+    </html>`,
+  }
 }
 
-exports.handler = arc.http.async(getIndex);
+export const handler = arc.http.async(getIndex)

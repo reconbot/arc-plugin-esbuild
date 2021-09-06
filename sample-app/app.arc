@@ -1,5 +1,5 @@
 @app
-plugin-parcel-demo
+plugin-esbuild-demo
 
 @http
 get /
@@ -16,7 +16,8 @@ data
   dateval *Number
 
 @plugins
-copper/plugin-parcel
+arc-plugin-esbuild
 
-@parcel
-outDir dist
+@esbuild
+external aws-sdk fs-extra
+buildDirectory .esbuild

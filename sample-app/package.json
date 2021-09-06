@@ -1,5 +1,5 @@
 {
-  "name": "plugin-parcel-demo",
+  "name": "arc-plugin-esbuild-demo",
   "version": "1.0.0",
   "description": "",
   "main": "test.js",

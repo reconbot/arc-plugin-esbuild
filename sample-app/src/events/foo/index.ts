@@ -1,1 +1,1 @@
-exports.handler = async something() { }
+export const handler = async function something() { }
