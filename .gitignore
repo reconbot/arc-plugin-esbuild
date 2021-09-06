@@ -1,7 +1,5 @@
-node_modules/
-sample-app/public/static.json
-sample-app/**/package-lock.json
-sample-app/demo.yml
-sample-app/sam.json
-sample-app/sam.yaml
-sample-app/.cache
+node_modules
+dist
+dist-ts
+.vscode
+tmp
