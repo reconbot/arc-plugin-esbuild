@@ -66,5 +66,10 @@
       "chai/register-assert"
     ],
     "spec": "lib/**/*-test.ts"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ]
   }
 }
