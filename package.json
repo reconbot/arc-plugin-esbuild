@@ -40,7 +40,7 @@
   },
   "devDependencies": {
     "@architect/functions": "^4.0.0",
-    "@architect/inventory": "^2.0.4",
+    "@architect/inventory": "^2.0.5",
     "@architect/package": "^7.0.1",
     "@microsoft/api-extractor": "^7.18.7",
     "@types/chai": "^4.2.21",
