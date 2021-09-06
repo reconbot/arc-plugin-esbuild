@@ -46,7 +46,7 @@ This plugin supports the following options under the `@esbuild` pragma:
 |---|---|---|
 |`buildDirectory`| The directory to write the bundled files to. This directory will be used at deploy-time before bundling your functions for deployment. Defaults to `.esbuild`. |`buildDirectory .esbuild`|
 |`entryFile`|A [glob](https://github.com/isaacs/node-glob#glob-primer) representing the file that should be used as entry point into your bundle. At `arc deploy` time, this pattern will be scoped to each Lambda function's directory before bundling each Lambda separately. At `arc sandbox` time, this pattern will be appended to `src/**/` when setting up the watcher process. If not specified the default will be `index.ts`.|`entryFile index.ts`|
-|`target`| esbuild node target `node14 | node12` | `target node14` |
+|`target`| esbuild node target `node14 \| node12` | `target node14` |
 |`external`| esbuild package externals defaults to `aws-sdk` | `external fs-extra aws-sdk` |
 
 ### Sandbox
