@@ -44,6 +44,8 @@ It's also worth ignoring the build artifacts.
 #.gitignore
 
 src/**/*.js
+!src/macros/*.js  # these are not transpiled
+!src/plugins/*.js # these are not transpiled
 .esbuild
 ```
 
