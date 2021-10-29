@@ -56,7 +56,7 @@ This plugin supports the following options under the `@esbuild` pragma:
 |Option|Description|Example|
 |---|---|---|
 |`buildDirectory`| The directory to write the bundled files to. This directory will be used at deploy-time before bundling your functions for deployment. Defaults to `.esbuild`. |`buildDirectory .esbuild`|
-|`entryFile`|A [glob](https://github.com/isaacs/node-glob#glob-primer) representing the file that should be used as entry point into your bundle. At `arc deploy` time, this pattern will be scoped to each Lambda function's directory before bundling each Lambda separately. At `arc sandbox` time, this pattern will be appended to `src/**/` when setting up the watcher process. If not specified the default will be `index.ts`.|`entryFile index.ts`|
+|`entryFilePattern`|A [glob](https://github.com/isaacs/node-glob#glob-primer) representing the file that should be used as entry point into your bundle. At `arc deploy` time, this pattern will be scoped to each Lambda function's directory before bundling each Lambda separately. At `arc sandbox` time, this pattern will be appended to `src/**/` when setting up the watcher process. If not specified the default will be `index.{ts,tsx}`.|`entryFilePattern index.{ts,tsx}`|
 |`target`| esbuild node target `node14 \| node12` | `target node14` |
 |`external`| esbuild package externals defaults to `aws-sdk` | `external fs-extra aws-sdk` |
 
@@ -92,6 +92,6 @@ the internet via `arc deploy`.
 application manifest**. If you run this plugin before another plugin that creates
 Lambdas, then the Lambda function code from the plugin will not be bundled.
 
-### Mixing and Matching JS and TS `entryFile`
+### Mixing and Matching JS and TS
 
-Mixing and matching JS and TS index files wont work. The `entryFile` must be the same for all functions.
+Mixing and matching JS and TS index files will work!. The `entryFilePattern` will need to be adjusted to match js files eg `index.{ts,tsx,js,jsx}`

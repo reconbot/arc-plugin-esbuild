@@ -77,6 +77,14 @@ describe('arc-plugin-esbuild', () => {
       for (const file of jsFiles) {
         assert.isFalse(fs.existsSync(file))
       }
+      const sourceFiles = [
+        './src/events/foo/index.ts',
+        './src/http/get-hi/index.tsx',
+        './src/http/get-index/index.ts',
+      ]
+      for (const file of sourceFiles) {
+        assert.isTrue(fs.existsSync(file))
+      }
     })
   })
 })

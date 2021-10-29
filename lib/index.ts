@@ -1,7 +1,7 @@
 import { buildFunction, BuildSetting } from './build'
 import { emptyDir, mkdirp, pathExists, remove } from 'fs-extra'
 import { updater } from '@architect/utils'
-import { join } from 'path'
+import { basename, join } from 'path'
 import { promisify } from 'util'
 import globStandard from 'glob'
 import { startWatch } from './watch'
@@ -17,7 +17,7 @@ const plugin = {
       return cfn
     }
     const projectDir = inventory.inv._project.src as string
-    const { buildDirectory, entryFile, target, external } = getOptions(arc)
+    const { buildDirectory, entryFilePattern, target, external } = getOptions(arc)
 
     // create and/or clean out the output directory
     const fullSrcPath = join(projectDir, 'src')
@@ -44,6 +44,12 @@ const plugin = {
         continue
       }
 
+      const entryFileFullPattern = join(uri, entryFilePattern)
+      const [entryFilePath] = await glob(entryFileFullPattern)
+      if (!entryFilePath) {
+        throw new Error(`Unable to resolve entryFile for ${entryFileFullPattern}`)
+      }
+      const entryFile = basename(entryFilePath)
       const src = join(uri, entryFile)
       const dest = join(uri.replace(fullSrcPath, fullOutPath), 'index.js')
 
@@ -78,13 +84,17 @@ const plugin = {
         return
       }
 
-      const { entryFile, target, external } = getOptions(arc)
+      const { entryFilePattern, target, external } = getOptions(arc)
       const projectDir = inventory.inv._project.src as string
-      const entryPattern = join(projectDir, 'src', '**', entryFile)
+      const entryPattern = join(projectDir, 'src', '**', entryFilePattern)
       const entryFiles = await glob(entryPattern, { ignore: ['./src/**/node_modules/**', './src/plugins/**'] })
 
       const settings: BuildSetting[] = entryFiles.map(src => {
-        const dest = src.replace(/\.ts$/, '.js')
+        const sourceFile = basename(src)
+        const dest = src.replace(sourceFile, 'index.js')
+        if (src === dest) {
+          throw new Error(`source file matches destination file ${src}`)
+        }
         return {
           src,
           dest,
@@ -105,13 +115,17 @@ const plugin = {
       stopWatch.close()
       logger.status('deleting build artifacts...')
 
-      const { entryFile, target, external } = getOptions(arc)
+      const { entryFilePattern, target, external } = getOptions(arc)
       const projectDir = inventory.inv._project.src as string
-      const entryPattern = join(projectDir, 'src', '**', entryFile)
+      const entryPattern = join(projectDir, 'src', '**', entryFilePattern)
       const entryFiles = await glob(entryPattern, { ignore: ['./src/**/node_modules/**', './src/plugins/**'] })
 
       const settings: BuildSetting[] = entryFiles.map(src => {
-        const dest = src.replace(/\.ts$/, '.js')
+        const sourceFile = basename(src)
+        const dest = src.replace(sourceFile, 'index.js')
+        if (src === dest) {
+          throw new Error(`source file matches destination file ${src}`)
+        }
         return {
           src,
           dest,
@@ -130,7 +144,7 @@ const plugin = {
 
 interface PluginOptions {
   // bundleNodeModules?: boolean
-  entryFile: string
+  entryFilePattern: string
   buildDirectory: string
   target: 'node14' | 'node12'
   external: string[]
@@ -148,8 +162,8 @@ function getOptions(arc): PluginOptions {
       }
     })
   }
-  const { buildDirectory = '.esbuild', entryFile = 'index.ts', target = 'node14', external = ['aws-sdk'] } = options
-  return { buildDirectory, entryFile, target, external }
+  const { buildDirectory = '.esbuild', entryFilePattern = 'index.{ts,tsx}', target = 'node14', external = ['aws-sdk'] } = options
+  return { buildDirectory, entryFilePattern, target, external }
 }
 
 export default plugin
