@@ -87,7 +87,7 @@ const plugin = {
       const { entryFilePattern, target, external } = getOptions(arc)
       const projectDir = inventory.inv._project.src as string
       const entryPattern = join(projectDir, 'src', '**', entryFilePattern)
-      const entryFiles = await glob(entryPattern, { ignore: ['./src/**/node_modules/**', './src/plugins/**'] })
+      const entryFiles = await glob(entryPattern, { ignore: ['./src/macros/**', './src/**/node_modules/**', './src/plugins/**'] })
 
       const settings: BuildSetting[] = entryFiles.map(src => {
         const sourceFile = basename(src)
@@ -118,7 +118,7 @@ const plugin = {
       const { entryFilePattern, target, external } = getOptions(arc)
       const projectDir = inventory.inv._project.src as string
       const entryPattern = join(projectDir, 'src', '**', entryFilePattern)
-      const entryFiles = await glob(entryPattern, { ignore: ['./src/**/node_modules/**', './src/plugins/**'] })
+      const entryFiles = await glob(entryPattern, { ignore: ['./src/macros/**', './src/**/node_modules/**', './src/plugins/**'] })
 
       const settings: BuildSetting[] = entryFiles.map(src => {
         const sourceFile = basename(src)
