@@ -41,7 +41,7 @@
   "devDependencies": {
     "@architect/functions": "^4.0.0",
     "@architect/inventory": "^2.0.4",
-    "@architect/package": "^7.0.1",
+    "@architect/package": "^8.1.0",
     "@microsoft/api-extractor": "^7.18.7",
     "@types/chai": "^4.2.21",
     "@types/fs-extra": "^9.0.12",
