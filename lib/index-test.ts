@@ -35,7 +35,7 @@ describe('arc-plugin-esbuild', () => {
 
   describe('arguments', () => {
     it('parses the arguments', async () => {
-      const inventory = await makeInventory({})
+      const inventory = await makeInventory({ deployStage: 'production' })
       const arc = inventory.inv._project.arc
       assert.deepEqual(arc.esbuild, [
         ['external', 'aws-sdk', 'fs-extra'],
@@ -46,11 +46,13 @@ describe('arc-plugin-esbuild', () => {
 
   describe('cloudformation packaging', () => {
     it('changes the code uri from a `src/` path to a `dist` path', async () => {
-      const inventory = await makeInventory({})
+      const inventory = await makeInventory({ deployStage: 'production' })
       const arc = inventory.inv._project.arc
+
+      // blows up with "ReferenceError: @architect/package can only be used with a valid deploy stage set"
       const cloudformation = pkg(inventory)
 
-      const result = await plugin.package({ arc, cloudformation, inventory })
+      const result = await plugin.deploy.start({ arc, cloudformation, inventory })
       const code = result.Resources.FooEventLambda.Properties.CodeUri
       const expected = join('.esbuild', 'events', 'foo')
       assert.include(code, expected)
@@ -63,7 +65,7 @@ describe('arc-plugin-esbuild', () => {
     })
 
     it('compiles function typescript code into JS on startup and removes compiled JS on shutdown', async () => {
-      const inventory = await makeInventory({})
+      const inventory = await makeInventory({ deployStage: 'production' })
       const arc = inventory.inv._project.arc
 
       await plugin.sandbox.start({ arc, inventory })
