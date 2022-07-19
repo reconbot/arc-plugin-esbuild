@@ -12,71 +12,72 @@ const logger = updater('esbuild', {})
 let stopWatch: ({ close(): void }) | null = null
 
 const plugin = {
-  async package({ arc, cloudformation: cfn, inventory }) {
-    if (!arc.esbuild) {
-      return cfn
-    }
-    const projectDir = inventory.inv._project.src as string
-    const { buildDirectory, entryFilePattern, target, external } = getOptions(arc)
-
-    // create and/or clean out the output directory
-    const fullSrcPath = join(projectDir, 'src')
-    const fullOutPath = join(projectDir, buildDirectory)
-
-    if (!await pathExists(fullOutPath)) {
-      await mkdirp(fullOutPath)
-    }
-    await emptyDir(fullOutPath)
-
-    const functions = Object.keys(cfn.Resources).filter(name => {
-      const type = cfn.Resources[name].Type
-      return type === 'AWS::Serverless::Function' || type === 'AWS::Lambda::Function'
-    })
-
-    const settings: BuildSetting[] = []
-
-    for (const fun of functions) {
-      const uri = cfn.Resources[fun].Properties.CodeUri as string
-
-      // some routes, like GetCatchallHTTPLambda, are built into arc (see
-      // npmjs.com/package/@architect/asap
-      if (uri.includes('node_modules')) {
-        continue
+  deploy: {
+    async start({ arc, cloudformation: cfn, inventory }) {
+      if (!arc.esbuild) {
+        return cfn
       }
+      const projectDir = inventory.inv._project.cwd as string
+      const { buildDirectory, entryFilePattern, target, external } = getOptions(arc)
 
-      const entryFileFullPattern = join(uri, entryFilePattern)
-      const [entryFilePath] = await glob(entryFileFullPattern)
-      if (!entryFilePath) {
-        throw new Error(`Unable to resolve entryFile for ${entryFileFullPattern}`)
+      // create and/or clean out the output directory
+      const fullSrcPath = inventory.inv._project.src as string
+      const fullOutPath = join(projectDir, buildDirectory)
+
+      if (!await pathExists(fullOutPath)) {
+        await mkdirp(fullOutPath)
       }
-      const entryFile = basename(entryFilePath)
-      const src = join(uri, entryFile)
-      const dest = join(uri.replace(fullSrcPath, fullOutPath), 'index.js')
+      await emptyDir(fullOutPath)
 
-      // if (!options.bundleNodeModules) {
-      //   fs.copySync(
-      //     join(uri, 'node_modules'),
-      //     join(code, 'node_modules'),
-      //   )
-      // }
-
-      settings.push({
-        src,
-        dest,
-        target,
-        external,
+      const functions = Object.keys(cfn.Resources).filter(name => {
+        const type = cfn.Resources[name].Type
+        return type === 'AWS::Serverless::Function' || type === 'AWS::Lambda::Function'
       })
 
-      cfn.Resources[fun].Properties.CodeUri = dest
-    }
+      const settings: BuildSetting[] = []
 
-    logger.start(`Bundling ${settings.length} functions`)
-    await Promise.all(settings.map(async buildSetting => {
-      await buildFunction(buildSetting)
-    }))
-    logger.done('Bundled')
+      for (const fun of functions) {
+        const uri = cfn.Resources[fun].Properties.CodeUri as string
 
-    return cfn
+        // some routes, like GetCatchallHTTPLambda, are built into arc (see
+        // npmjs.com/package/@architect/asap
+        if (uri.includes('node_modules')) {
+          continue
+        }
+
+        const entryFileFullPattern = join(uri, entryFilePattern)
+        const [entryFilePath] = await glob(entryFileFullPattern)
+        if (!entryFilePath) {
+          throw new Error(`Unable to resolve entryFile for ${entryFileFullPattern}`)
+        }
+        const entryFile = basename(entryFilePath)
+        const src = join(uri, entryFile)
+        const dest = join(uri.replace(fullSrcPath, fullOutPath), 'index.js')
+
+        // if (!options.bundleNodeModules) {
+        //   fs.copySync(
+        //     join(uri, 'node_modules'),
+        //     join(code, 'node_modules'),
+        //   )
+        // }
+
+        settings.push({
+          src,
+          dest,
+          target,
+          external,
+        })
+        cfn.Resources[fun].Properties.CodeUri = dest
+      }
+
+      logger.start(`Bundling ${settings.length} functions`)
+      await Promise.all(settings.map(async buildSetting => {
+        await buildFunction(buildSetting)
+      }))
+      logger.done('Bundled')
+
+      return cfn
+    },
   },
   sandbox: {
     async start({ arc, inventory }) {
@@ -85,8 +86,8 @@ const plugin = {
       }
 
       const { entryFilePattern, target, external } = getOptions(arc)
-      const projectDir = inventory.inv._project.src as string
-      const entryPattern = join(projectDir, 'src', '**', entryFilePattern)
+      const srcDir = inventory.inv._project.src as string
+      const entryPattern = join(srcDir, '**', entryFilePattern)
       const entryFiles = await glob(entryPattern, { ignore: ['./src/macros/**', './src/**/node_modules/**', './src/plugins/**'] })
 
       const settings: BuildSetting[] = entryFiles.map(src => {
@@ -104,7 +105,7 @@ const plugin = {
       })
 
       logger.status('Starting up watch process...')
-      stopWatch = await startWatch({ projectDir, settings })
+      stopWatch = await startWatch({ projectDir: srcDir, settings })
       logger.done('Started')
     },
     async end({ inventory, arc }) {
@@ -116,8 +117,8 @@ const plugin = {
       logger.status('deleting build artifacts...')
 
       const { entryFilePattern, target, external } = getOptions(arc)
-      const projectDir = inventory.inv._project.src as string
-      const entryPattern = join(projectDir, 'src', '**', entryFilePattern)
+      const srcDir = inventory.inv._project.src as string
+      const entryPattern = join(srcDir, '**', entryFilePattern)
       const entryFiles = await glob(entryPattern, { ignore: ['./src/macros/**', './src/**/node_modules/**', './src/plugins/**'] })
 
       const settings: BuildSetting[] = entryFiles.map(src => {
