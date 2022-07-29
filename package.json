@@ -32,8 +32,7 @@
   "dependencies": {
     "@architect/utils": "^3.1.2",
     "fs-extra": "^10.1.0",
-    "glob": "^8.0.3",
-    "node-watch": "^0.7.3"
+    "glob": "^8.0.3"
   },
   "peerDependencies": {
     "esbuild": "^0.14.49"

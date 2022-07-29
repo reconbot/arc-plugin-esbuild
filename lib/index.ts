@@ -4,12 +4,16 @@ import { updater } from '@architect/utils'
 import { basename, join } from 'path'
 import { promisify } from 'util'
 import globStandard from 'glob'
-import { startWatch } from './watch'
 
 const glob = promisify(globStandard)
 
 const logger = updater('esbuild', {})
-let stopWatch: ({ close(): void }) | null = null
+
+interface ESBuildSettings {
+  srcDir: string
+  settings: BuildSetting[]
+  outputs: Set<string>
+}
 
 const plugin = {
   deploy: {
@@ -90,12 +94,14 @@ const plugin = {
       const entryPattern = join(srcDir, '**', entryFilePattern)
       const entryFiles = await glob(entryPattern, { ignore: ['./src/macros/**', './src/**/node_modules/**', './src/plugins/**'] })
 
+      const outputs = new Set<string>()
       const settings: BuildSetting[] = entryFiles.map(src => {
         const sourceFile = basename(src)
         const dest = src.replace(sourceFile, 'index.js')
         if (src === dest) {
           throw new Error(`source file matches destination file ${src}`)
         }
+        outputs.add(dest)
         return {
           src,
           dest,
@@ -103,19 +109,13 @@ const plugin = {
           external,
         }
       })
-
-      logger.status('Starting up watch process...')
-      stopWatch = await startWatch({ projectDir: srcDir, settings })
-      logger.done('Started')
+      inventory._esbuild = { srcDir, settings, outputs } as ESBuildSettings
+      await Promise.all(settings.map(async buildSetting => {
+        await buildFunction(buildSetting)
+      }))
     },
     async end({ inventory, arc }) {
-      if (!stopWatch) {
-        return
-      }
-      logger.status('Stopping watch process...')
-      stopWatch.close()
       logger.status('deleting build artifacts...')
-
       const { entryFilePattern, target, external } = getOptions(arc)
       const srcDir = inventory.inv._project.src as string
       const entryPattern = join(srcDir, '**', entryFilePattern)
@@ -140,6 +140,24 @@ const plugin = {
       }
       logger.done('esbuild is shutdown')
     },
+  },
+  async watcher({ filename, event, inventory }: { filename: string, event: 'add' | 'update' | 'remove', inventory: any }) {
+    if (!inventory._esbuild) {
+      logger.status('Unable to read settings')
+    }
+    const { settings, outputs } = inventory._esbuild as ESBuildSettings
+
+    if (outputs.has(filename)) {
+      return
+    }
+
+    if (!/\.(ts|js|graphql|arc|)$/.test(filename)) {
+      return
+    }
+
+    await Promise.all(settings.map(async buildSetting => {
+      await buildFunction(buildSetting)
+    }))
   },
 }
 
