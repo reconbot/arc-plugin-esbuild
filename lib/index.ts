@@ -15,6 +15,8 @@ interface ESBuildSettings {
   outputs: Set<string>
 }
 
+let _esbuild: ESBuildSettings | undefined = undefined
+
 const plugin = {
   deploy: {
     async start({ arc, cloudformation: cfn, inventory }) {
@@ -109,7 +111,7 @@ const plugin = {
           external,
         }
       })
-      inventory._esbuild = { srcDir, settings, outputs } as ESBuildSettings
+      _esbuild = { srcDir, settings, outputs } as ESBuildSettings
       await Promise.all(settings.map(async buildSetting => {
         await buildFunction(buildSetting)
       }))
@@ -141,11 +143,12 @@ const plugin = {
       logger.done('esbuild is shutdown')
     },
   },
-  async watcher({ filename, event, inventory }: { filename: string, event: 'add' | 'update' | 'remove', inventory: any }) {
-    if (!inventory._esbuild) {
+  async watcher({ filename }: { filename: string, event: 'add' | 'update' | 'remove', inventory: any }) {
+    if (!_esbuild) {
       logger.status('Unable to read settings')
+      return
     }
-    const { settings, outputs } = inventory._esbuild as ESBuildSettings
+    const { settings, outputs } = _esbuild as ESBuildSettings
 
     if (outputs.has(filename)) {
       return
