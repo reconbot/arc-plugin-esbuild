@@ -36,7 +36,7 @@
     "node-watch": "^0.7.3"
   },
   "peerDependencies": {
-    "esbuild": "^0.14.49"
+    "esbuild": "^0.14.49 || ^0.15.0"
   },
   "devDependencies": {
     "@architect/functions": "5.2.1",
@@ -51,7 +51,7 @@
     "@typescript-eslint/eslint-plugin": "5.33.0",
     "@typescript-eslint/parser": "5.33.0",
     "chai": "4.3.6",
-    "esbuild": "0.14.51",
+    "esbuild": "0.15.2",
     "esbuild-register": "3.3.3",
     "eslint": "8.21.0",
     "mocha": "10.0.0",
