@@ -4,7 +4,7 @@
   "description": "",
   "main": "test.js",
   "dependencies": {
-    "@architect/architect": "^8.5.0-RC.3"
+    "@architect/architect": "^10.0.0"
   },
   "devDependencies": {
     "typescript": "^4.2.3"
