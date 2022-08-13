@@ -7,7 +7,7 @@
     "@architect/architect": "^8.5.0-RC.3"
   },
   "devDependencies": {
-    "typescript": "^4.2.3"
+    "typescript": "4.4.2"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
