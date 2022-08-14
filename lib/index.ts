@@ -1,7 +1,7 @@
 import { buildFunction, BuildSetting } from './build'
 import { emptyDir, mkdirp, pathExists, remove } from 'fs-extra'
 import { updater } from '@architect/utils'
-import { basename, join } from 'path'
+import { basename, dirname, join } from 'path'
 import { promisify } from 'util'
 import globStandard from 'glob'
 import { startWatch } from './watch'
@@ -11,6 +11,19 @@ const glob = promisify(globStandard)
 const logger = updater('esbuild', {})
 let stopWatch: ({ close(): void }) | null = null
 
+const parseRuntimeToTarget = (inventory: any, uri: string) => {
+  const runtime = inventory.inv.lambdasBySrcDir[uri]?.config?.runtime as string | undefined
+  if (!runtime) {
+    throw new Error(`Unable to detect runtime for ${uri}`)
+  }
+
+  const target = runtime.replace(/^nodejs/, 'node').replace(/\.x$/, '')
+  if (!target.match(/node\d+/)) {
+    throw new Error(`Unable to parse runtime ${runtime} for ${uri}`)
+  }
+  return target
+}
+
 const plugin = {
   deploy: {
     async start({ arc, cloudformation: cfn, inventory }) {
@@ -18,7 +31,7 @@ const plugin = {
         return cfn
       }
       const projectDir = inventory.inv._project.cwd as string
-      const { buildDirectory, entryFilePattern, target, external } = getOptions(arc)
+      const { buildDirectory, entryFilePattern, external } = getOptions(arc)
 
       // create and/or clean out the output directory
       const fullSrcPath = inventory.inv._project.src as string
@@ -60,7 +73,7 @@ const plugin = {
         //     join(code, 'node_modules'),
         //   )
         // }
-
+        const target = parseRuntimeToTarget(inventory, uri)
         settings.push({
           src,
           dest,
@@ -85,7 +98,7 @@ const plugin = {
         return
       }
 
-      const { entryFilePattern, target, external } = getOptions(arc)
+      const { entryFilePattern, external } = getOptions(arc)
       const srcDir = inventory.inv._project.src as string
       const projectDir = inventory.inv._project.cwd as string
       const entryPattern = join(srcDir, '**', entryFilePattern)
@@ -93,10 +106,15 @@ const plugin = {
 
       const settings: BuildSetting[] = entryFiles.map(src => {
         const sourceFile = basename(src)
+        const sourceDir = dirname(src)
+
         const dest = src.replace(sourceFile, 'index.js')
         if (src === dest) {
           throw new Error(`source file matches destination file ${src}`)
         }
+
+        const target = parseRuntimeToTarget(inventory, sourceDir)
+
         return {
           src,
           dest,
@@ -117,26 +135,21 @@ const plugin = {
       stopWatch.close()
       logger.status('deleting build artifacts...')
 
-      const { entryFilePattern, target, external } = getOptions(arc)
+      const { entryFilePattern } = getOptions(arc)
       const srcDir = inventory.inv._project.src as string
       const entryPattern = join(srcDir, '**', entryFilePattern)
       const entryFiles = await glob(entryPattern, { ignore: ['./src/macros/**', './src/**/node_modules/**', './src/plugins/**'] })
 
-      const settings: BuildSetting[] = entryFiles.map(src => {
+      const destinations: string[] = entryFiles.map(src => {
         const sourceFile = basename(src)
         const dest = src.replace(sourceFile, 'index.js')
         if (src === dest) {
           throw new Error(`source file matches destination file ${src}`)
         }
-        return {
-          src,
-          dest,
-          target,
-          external,
-        }
+        return dest
       })
 
-      for (const { dest } of settings) {
+      for (const dest of destinations) {
         await remove(dest)
       }
       logger.done('esbuild is shutdown')
@@ -148,7 +161,6 @@ interface PluginOptions {
   // bundleNodeModules?: boolean
   entryFilePattern: string
   buildDirectory: string
-  target: 'node14' | 'node12'
   external: string[]
 }
 
@@ -164,8 +176,8 @@ function getOptions(arc): PluginOptions {
       }
     })
   }
-  const { buildDirectory = '.esbuild', entryFilePattern = 'index.{ts,tsx}', target = 'node14', external = ['aws-sdk'] } = options
-  return { buildDirectory, entryFilePattern, target, external }
+  const { buildDirectory = '.esbuild', entryFilePattern = 'index.{ts,tsx}', external = ['aws-sdk'] } = options
+  return { buildDirectory, entryFilePattern, external }
 }
 
 export default plugin

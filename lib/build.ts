@@ -3,7 +3,7 @@ import { build } from 'esbuild'
 export interface BuildSetting {
   src: string
   dest: string
-  target: 'node14' | 'node12'
+  target: string
   external: string[]
 }
 

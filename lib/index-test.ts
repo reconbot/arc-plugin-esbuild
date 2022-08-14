@@ -38,7 +38,7 @@ describe('arc-plugin-esbuild', () => {
       const inventory = await makeInventory({ deployStage: 'production' })
       const arc = inventory.inv._project.arc
       assert.deepEqual(arc.esbuild, [
-        ['external', 'aws-sdk', 'fs-extra'],
+        ['external', 'aws-sdk', 'prisma'],
         ['buildDirectory', '.esbuild'],
       ])
     })
