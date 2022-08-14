@@ -10,3 +10,6 @@ package-lock.json
 rollup.config.js
 tsconfig-build.json
 tsconfig.json
+tmp
+sample-app
+CONTRIBUTING.md
