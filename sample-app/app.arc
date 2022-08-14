@@ -19,5 +19,5 @@ data
 arc-plugin-esbuild
 
 @esbuild
-external aws-sdk fs-extra
+external aws-sdk prisma
 buildDirectory .esbuild
