@@ -52,8 +52,7 @@ const plugin = {
       for (const fun of functions) {
         const uri = cfn.Resources[fun].Properties.CodeUri as string
 
-        // some routes, like GetCatchallHTTPLambda, are built into arc (see
-        // npmjs.com/package/@architect/asap
+        // some routes, like GetCatchallHTTPLambda, are built into arc (see npmjs.com/package/@architect/asap)
         if (uri.includes('node_modules')) {
           continue
         }
@@ -69,12 +68,6 @@ const plugin = {
         await ensureDir(newUri)
         const dest = join(newUri, 'index.js')
 
-        // if (!options.bundleNodeModules) {
-        //   fs.copySync(
-        //     join(uri, 'node_modules'),
-        //     join(code, 'node_modules'),
-        //   )
-        // }
         const target = parseRuntimeToTarget(inventory, uri)
         settings.push({
           src,
