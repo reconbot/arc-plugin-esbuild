@@ -1,5 +1,5 @@
 import { buildFunction, BuildSetting } from './build'
-import { emptyDir, mkdirp, pathExists, remove } from 'fs-extra'
+import { emptyDir, ensureDir, mkdirp, pathExists, remove } from 'fs-extra'
 import { updater } from '@architect/utils'
 import { basename, dirname, join } from 'path'
 import { promisify } from 'util'
@@ -65,7 +65,9 @@ const plugin = {
         }
         const entryFile = basename(entryFilePath)
         const src = join(uri, entryFile)
-        const dest = join(uri.replace(fullSrcPath, fullOutPath), 'index.js')
+        const newUri = uri.replace(fullSrcPath, fullOutPath)
+        await ensureDir(newUri)
+        const dest = join(newUri, 'index.js')
 
         // if (!options.bundleNodeModules) {
         //   fs.copySync(
@@ -80,7 +82,7 @@ const plugin = {
           target,
           external,
         })
-        cfn.Resources[fun].Properties.CodeUri = dest
+        cfn.Resources[fun].Properties.CodeUri = newUri
       }
 
       logger.start(`Bundling ${settings.length} functions`)
