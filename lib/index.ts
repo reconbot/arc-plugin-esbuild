@@ -65,14 +65,8 @@ const plugin = {
         }
         const entryFile = basename(entryFilePath)
         const src = join(uri, entryFile)
-        const dest = join(uri.replace(fullSrcPath, fullOutPath), 'index.js')
+        const dest = uri.replace(fullSrcPath, fullOutPath)
 
-        // if (!options.bundleNodeModules) {
-        //   fs.copySync(
-        //     join(uri, 'node_modules'),
-        //     join(code, 'node_modules'),
-        //   )
-        // }
         const target = parseRuntimeToTarget(inventory, uri)
         settings.push({
           src,
