@@ -1,9 +1,9 @@
 import watch from 'node-watch'
 import { buildFunction, BuildSetting } from './build'
 
-export const startWatch = async ({ projectDir, settings, callback }: { projectDir: string, settings: BuildSetting[], callback?: () => any }) => {
+export const startWatch = async ({ projectDir, buildSettings, callback }: { projectDir: string, buildSettings: BuildSetting[], callback?: () => any }) => {
   const outputs = new Set()
-  for (const { dest } of settings) {
+  for (const { dest } of buildSettings) {
     outputs.add(dest)
   }
 
@@ -11,7 +11,7 @@ export const startWatch = async ({ projectDir, settings, callback }: { projectDi
     if (callback) {
       callback()
     }
-    await Promise.all(settings.map(async buildSetting => {
+    await Promise.all(buildSettings.map(async buildSetting => {
       await buildFunction(buildSetting)
     }))
   }
