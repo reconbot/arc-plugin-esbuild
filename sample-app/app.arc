@@ -20,4 +20,3 @@ arc-plugin-esbuild
 
 @esbuild
 external aws-sdk '@prisma/client'
-buildDirectory .esbuild
