@@ -32,9 +32,9 @@ const parseRuntimeToTarget = (inventory: any, uri: string) => {
 
 const plugin = {
   deploy: {
-    async start({ arc, cloudformation: cfn, inventory }) {
+    async start({ arc, cloudformation, inventory }) {
       if (!arc.esbuild) {
-        return cfn
+        return cloudformation
       }
 
       const { entryFilePattern, external } = getOptions(arc)
@@ -47,7 +47,7 @@ const plugin = {
       await Promise.all(buildSettings.map(buildSetting => buildFunction(buildSetting)))
       logger.done('Bundled')
 
-      return cfn
+      return cloudformation
     },
     async end({ inventory }) {
       const settings = settingsRepository.get(inventory)

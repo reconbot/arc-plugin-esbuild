@@ -39,23 +39,36 @@ describe('arc-plugin-esbuild', () => {
       const arc = inventory.inv._project.arc
       assert.deepEqual(arc.esbuild, [
         ['external', 'aws-sdk', '@prisma/client'],
-        ['buildDirectory', '.esbuild'],
       ])
     })
   })
 
-  describe('cloudformation packaging', () => {
+  describe('deploy integration', () => {
     it('changes the code uri from a `src/` path to a `dist` path', async () => {
       const inventory = await makeInventory({ deployStage: 'production' })
+      const cloudformation = pkg(inventory)
       const arc = inventory.inv._project.arc
 
-      // blows up with "ReferenceError: @architect/package can only be used with a valid deploy stage set"
-      const cloudformation = pkg(inventory)
+      await plugin.deploy.start({ arc, cloudformation, inventory })
+      const jsFiles = await glob('./src/**/*.js', { ignore: './src/**/node_modules/**' })
+      assert.includeMembers(jsFiles, [
+        './src/events/foo/index.js',
+        './src/http/get-hi/index.js',
+        './src/http/get-index/index.js',
+      ])
+      await plugin.deploy.end({ inventory })
+      for (const file of jsFiles) {
+        assert.isFalse(fs.existsSync(file))
+      }
+      const sourceFiles = [
+        './src/events/foo/index.ts',
+        './src/http/get-hi/index.tsx',
+        './src/http/get-index/index.ts',
+      ]
+      for (const file of sourceFiles) {
+        assert.isTrue(fs.existsSync(file))
+      }
 
-      const result = await plugin.deploy.start({ arc, cloudformation, inventory })
-      const code = result.Resources.FooEventLambda.Properties.CodeUri
-      const expected = join('.esbuild', 'events', 'foo')
-      assert.include(code, expected)
     })
   })
 
