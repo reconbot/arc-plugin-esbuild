@@ -1,5 +1,5 @@
 import { buildFunction, BuildSetting } from './build'
-import { emptyDir, ensureDir, mkdirp, pathExists, remove } from 'fs-extra'
+import { emptyDir, ensureDir, mkdirp, pathExists, remove, unlink } from 'fs-extra'
 import { updater } from '@architect/utils'
 import { basename, dirname, join } from 'path'
 import { promisify } from 'util'
@@ -10,6 +10,12 @@ const glob = promisify(globStandard)
 
 const logger = updater('esbuild', {})
 let stopWatch: ({ close(): void }) | null = null
+
+interface Settings {
+  buildSettings: BuildSetting[]
+}
+
+const settingsRepository = new WeakMap<any, Settings>()
 
 const parseRuntimeToTarget = (inventory: any, uri: string) => {
   const runtime = inventory.inv.lambdasBySrcDir[uri]?.config?.runtime as string | undefined
@@ -30,61 +36,28 @@ const plugin = {
       if (!arc.esbuild) {
         return cfn
       }
-      const projectDir = inventory.inv._project.cwd as string
-      const { buildDirectory, entryFilePattern, external } = getOptions(arc)
 
-      // create and/or clean out the output directory
-      const fullSrcPath = inventory.inv._project.src as string
-      const fullOutPath = join(projectDir, buildDirectory)
+      const { entryFilePattern, external } = getOptions(arc)
+      const srcDir = inventory.inv._project.src as string
+      const entryPattern = join(srcDir, '**', entryFilePattern)
 
-      if (!await pathExists(fullOutPath)) {
-        await mkdirp(fullOutPath)
-      }
-      await emptyDir(fullOutPath)
-
-      const functions = Object.keys(cfn.Resources).filter(name => {
-        const type = cfn.Resources[name].Type
-        return type === 'AWS::Serverless::Function' || type === 'AWS::Lambda::Function'
-      })
-
-      const settings: BuildSetting[] = []
-
-      for (const fun of functions) {
-        const uri = cfn.Resources[fun].Properties.CodeUri as string
-
-        // some routes, like GetCatchallHTTPLambda, are built into arc (see npmjs.com/package/@architect/asap)
-        if (uri.includes('node_modules')) {
-          continue
-        }
-
-        const entryFileFullPattern = join(uri, entryFilePattern)
-        const [entryFilePath] = await glob(entryFileFullPattern)
-        if (!entryFilePath) {
-          throw new Error(`Unable to resolve entryFile for ${entryFileFullPattern}`)
-        }
-        const entryFile = basename(entryFilePath)
-        const src = join(uri, entryFile)
-        const newUri = uri.replace(fullSrcPath, fullOutPath)
-        await ensureDir(newUri)
-        const dest = join(newUri, 'index.js')
-
-        const target = parseRuntimeToTarget(inventory, uri)
-        settings.push({
-          src,
-          dest,
-          target,
-          external,
-        })
-        cfn.Resources[fun].Properties.CodeUri = newUri
-      }
-
-      logger.start(`Bundling ${settings.length} functions`)
-      await Promise.all(settings.map(async buildSetting => {
-        await buildFunction(buildSetting)
-      }))
+      const buildSettings: BuildSetting[] = await findTargets(entryPattern, inventory, external)
+      settingsRepository.set(inventory, { buildSettings })
+      logger.start(`Bundling ${buildSettings.length} functions`)
+      await Promise.all(buildSettings.map(buildSetting => buildFunction(buildSetting)))
       logger.done('Bundled')
 
       return cfn
+    },
+    async end({ inventory }) {
+      const settings = settingsRepository.get(inventory)
+      if (!settings) {
+        throw new Error('Unable to load settings')
+      }
+      logger.status('deleting build artifacts...')
+      await Promise.all(settings.buildSettings.map(({ dest }) => unlink(dest)))
+
+      logger.done('esbuild is shutdown')
     },
   },
   sandbox: {
@@ -97,56 +70,28 @@ const plugin = {
       const srcDir = inventory.inv._project.src as string
       const projectDir = inventory.inv._project.cwd as string
       const entryPattern = join(srcDir, '**', entryFilePattern)
-      const entryFiles = await glob(entryPattern, { ignore: ['./src/macros/**', './src/**/node_modules/**', './src/plugins/**'] })
-
-      const settings: BuildSetting[] = entryFiles.map(src => {
-        const sourceFile = basename(src)
-        const sourceDir = dirname(src)
-
-        const dest = src.replace(sourceFile, 'index.js')
-        if (src === dest) {
-          throw new Error(`source file matches destination file ${src}`)
-        }
-
-        const target = parseRuntimeToTarget(inventory, sourceDir)
-
-        return {
-          src,
-          dest,
-          target,
-          external,
-        }
-      })
+      const buildSettings: BuildSetting[] = await findTargets(entryPattern, inventory, external)
 
       logger.status('Starting up watch process...')
-      stopWatch = await startWatch({ projectDir, settings })
+      stopWatch = await startWatch({ projectDir, buildSettings: buildSettings })
+
+      settingsRepository.set(inventory, { buildSettings })
       logger.done('Started')
     },
-    async end({ inventory, arc }) {
+    async end({ inventory }) {
       if (!stopWatch) {
         return
       }
+      const settings = settingsRepository.get(inventory)
+      if (!settings) {
+        throw new Error('Unable to load settings')
+      }
       logger.status('Stopping watch process...')
       stopWatch.close()
+
       logger.status('deleting build artifacts...')
+      await Promise.all(settings.buildSettings.map(({ dest }) => unlink(dest)))
 
-      const { entryFilePattern } = getOptions(arc)
-      const srcDir = inventory.inv._project.src as string
-      const entryPattern = join(srcDir, '**', entryFilePattern)
-      const entryFiles = await glob(entryPattern, { ignore: ['./src/macros/**', './src/**/node_modules/**', './src/plugins/**'] })
-
-      const destinations: string[] = entryFiles.map(src => {
-        const sourceFile = basename(src)
-        const dest = src.replace(sourceFile, 'index.js')
-        if (src === dest) {
-          throw new Error(`source file matches destination file ${src}`)
-        }
-        return dest
-      })
-
-      for (const dest of destinations) {
-        await remove(dest)
-      }
       logger.done('esbuild is shutdown')
     },
   },
@@ -155,8 +100,31 @@ const plugin = {
 interface PluginOptions {
   // bundleNodeModules?: boolean
   entryFilePattern: string
-  buildDirectory: string
   external: string[]
+}
+
+async function findTargets(entryPattern: string, inventory: any, external: string[]) {
+  const entryFiles = await glob(entryPattern, { ignore: ['./src/macros/**', './src/**/node_modules/**', './src/plugins/**'] })
+
+  const buildSettings: BuildSetting[] = entryFiles.map(src => {
+    const sourceFile = basename(src)
+    const sourceDir = dirname(src)
+
+    const dest = src.replace(sourceFile, 'index.js')
+    if (src === dest) {
+      throw new Error(`source file matches destination file ${src}`)
+    }
+
+    const target = parseRuntimeToTarget(inventory, sourceDir)
+
+    return {
+      src,
+      dest,
+      target,
+      external,
+    }
+  })
+  return buildSettings
 }
 
 function getOptions(arc): PluginOptions {
@@ -171,8 +139,11 @@ function getOptions(arc): PluginOptions {
       }
     })
   }
-  const { buildDirectory = '.esbuild', entryFilePattern = 'index.{ts,tsx}', external = ['aws-sdk'] } = options
-  return { buildDirectory, entryFilePattern, external }
+  const { entryFilePattern = 'index.{ts,tsx}', external = ['aws-sdk'], ...rest } = options
+  if (Object.keys(rest).length > 0) {
+    throw new Error(`esbuild: unknown configuration key ${Object.keys(rest)}`)
+  }
+  return { entryFilePattern, external }
 }
 
 export default plugin

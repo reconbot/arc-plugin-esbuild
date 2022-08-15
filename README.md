@@ -55,9 +55,9 @@ This plugin supports the following options under the `@esbuild` pragma:
 
 |Option|Description|Example|
 |---|---|---|
-|`buildDirectory`| The directory to write the bundled files to. This directory will be used at deploy-time before bundling your functions for deployment. Defaults to `.esbuild`. |`buildDirectory .esbuild`|
+|`buildDirectory`| The directory to write the bundled files to. This directory will be used at deploy-time before bundling your functions for deployment. Defaults to `.esbuild`. If you use hydration it's recommended to set this to `src` and commingle your js and ts. |`buildDirectory .esbuild`|
 |`entryFilePattern`|A [glob](https://github.com/isaacs/node-glob#glob-primer) representing the file that should be used as entry point into your bundle. At `arc deploy` time, this pattern will be scoped to each Lambda function's directory before bundling each Lambda separately. At `arc sandbox` time, this pattern will be appended to `src/**/` when setting up the watcher process. If not specified the default will be `index.{ts,tsx}`.|`entryFilePattern index.{ts,tsx}`|
-|`external`| esbuild package externals defaults to `aws-sdk` | `external prisma aws-sdk` |
+|`external`| esbuild package externals defaults to `aws-sdk` | `external '@prisma/client' aws-sdk` |
 
 ### Sandbox
 
