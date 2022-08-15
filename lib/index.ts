@@ -1,5 +1,5 @@
 import { buildFunction, BuildSetting } from './build'
-import { emptyDir, ensureDir, mkdirp, pathExists, remove, unlink } from 'fs-extra'
+import { unlink } from 'fs-extra'
 import { updater } from '@architect/utils'
 import { basename, dirname, join } from 'path'
 import { promisify } from 'util'
