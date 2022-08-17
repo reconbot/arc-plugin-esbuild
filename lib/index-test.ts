@@ -56,7 +56,7 @@ describe('arc-plugin-esbuild', () => {
         './src/http/get-hi/index.js',
         './src/http/get-index/index.js',
       ])
-      await plugin.deploy.end({ inventory })
+      await plugin.deploy.end()
       for (const file of jsFiles) {
         assert.isFalse(fs.existsSync(file))
       }
@@ -88,7 +88,7 @@ describe('arc-plugin-esbuild', () => {
         './src/http/get-hi/index.js',
         './src/http/get-index/index.js',
       ])
-      await plugin.sandbox.end({ arc, inventory })
+      await plugin.sandbox.end()
       for (const file of jsFiles) {
         assert.isFalse(fs.existsSync(file))
       }
