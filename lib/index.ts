@@ -15,7 +15,7 @@ interface Settings {
   buildSettings: BuildSetting[]
 }
 
-const settingsRepository = new WeakMap<any, Settings>()
+let settings: Settings | null = null
 
 const parseRuntimeToTarget = (inventory: any, uri: string) => {
   const runtime = inventory.inv.lambdasBySrcDir[uri]?.config?.runtime as string | undefined
@@ -42,15 +42,14 @@ const plugin = {
       const entryPattern = join(srcDir, '**', entryFilePattern)
 
       const buildSettings: BuildSetting[] = await findTargets(entryPattern, inventory, external)
-      settingsRepository.set(inventory, { buildSettings })
+      settings = { buildSettings }
       logger.start(`Bundling ${buildSettings.length} functions`)
       await Promise.all(buildSettings.map(buildSetting => buildFunction(buildSetting)))
       logger.done('Bundled')
 
       return cloudformation
     },
-    async end({ inventory }) {
-      const settings = settingsRepository.get(inventory)
+    async end() {
       if (!settings) {
         throw new Error('Unable to load settings')
       }
@@ -75,14 +74,13 @@ const plugin = {
       logger.status('Starting up watch process...')
       stopWatch = await startWatch({ projectDir, buildSettings: buildSettings })
 
-      settingsRepository.set(inventory, { buildSettings })
+      settings = { buildSettings }
       logger.done('Started')
     },
-    async end({ inventory }) {
+    async end() {
       if (!stopWatch) {
         return
       }
-      const settings = settingsRepository.get(inventory)
       if (!settings) {
         throw new Error('Unable to load settings')
       }
