@@ -1,3 +1,6 @@
+@aws
+runtime esbuild
+
 @app
 plugin-esbuild-demo
 
@@ -20,3 +23,4 @@ arc-plugin-esbuild
 
 @esbuild
 external aws-sdk '@prisma/client'
+configFile esbuild.js
