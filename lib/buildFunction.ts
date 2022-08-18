@@ -1,6 +1,6 @@
 import { build } from 'esbuild'
 import { join } from 'path'
-import { LambdaConfig, PluginOptions } from './types'
+import { LambdaConfig } from './types'
 
 const parseRuntimeToTarget = (runtime: string) => {
   if (!runtime) {
@@ -21,7 +21,7 @@ export interface BuildConfig {
 }
 
 export async function buildFunction({ lambda, cwd }: BuildConfig) {
-  const { src, handlerFile, config: { runtime, runtimeConfig: { runtimeOptions }} } = lambda
+  const { src, handlerFile, config: { runtime, runtimeConfig: { runtimeOptions } } } = lambda
   if (runtime !== 'esbuild') {
     return
   }
@@ -33,7 +33,7 @@ export async function buildFunction({ lambda, cwd }: BuildConfig) {
   // const globalTsConfig = getTsConfig(cwd)
 
   await build({
-    entryPoints: [ join(src, 'index.ts') ],
+    entryPoints: [join(src, 'index.ts')],
     outfile: handlerFile,
     bundle: true,
     platform: 'node',
