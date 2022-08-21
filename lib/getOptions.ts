@@ -1,3 +1,4 @@
+import { resolve } from 'path'
 import { PluginOptions } from './types'
 
 const arrayConfigValues = {
@@ -18,5 +19,6 @@ export function getOptions(arc): PluginOptions {
   if (Object.keys(rest).length > 0) {
     throw new Error(`esbuild: unknown configuration key ${Object.keys(rest)}`)
   }
-  return { external, buildDirectory, configFile, baseRuntime }
+  const resolvedBuildDirectory = resolve(buildDirectory)
+  return { external, buildDirectory, configFile, baseRuntime, resolvedBuildDirectory }
 }

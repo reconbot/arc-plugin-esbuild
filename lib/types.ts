@@ -1,5 +1,6 @@
 export interface PluginOptions {
   buildDirectory: string
+  resolvedBuildDirectory: string
   external: string[]
   baseRuntime: string
   configFile?: string

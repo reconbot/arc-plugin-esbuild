@@ -45,7 +45,13 @@ const plugin = {
   },
   sandbox: {
     start,
-    watcher: start,
+    async watcher({ filename, inventory }: { filename: string, inventory: Inventory }) {
+      const { customRuntimes: { esbuild : { runtimeOptions } } } = inventory.inv._project
+      if (filename.startsWith(runtimeOptions.resolvedBuildDirectory)) {
+        return
+      }
+      await start({ inventory })
+    },
   },
 }
 
