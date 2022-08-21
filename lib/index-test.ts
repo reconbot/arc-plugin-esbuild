@@ -1,14 +1,9 @@
 import { assert } from 'chai'
 import makeInventory from '@architect/inventory'
-import pkg from '@architect/package'
 import { copy, mkdirp, remove } from 'fs-extra'
 import fs from 'fs'
 import { join } from 'path'
-import globStandard from 'glob'
-import { promisify } from 'util'
 import plugin from './'
-
-const glob = promisify(globStandard)
 
 const sampleDir = join(__dirname, '..', 'sample-app')
 const appDir = join(__dirname, '..', 'tmp')
@@ -38,54 +33,23 @@ describe('arc-plugin-esbuild', () => {
       const inventory = await makeInventory({ deployStage: 'production' })
       const arc = inventory.inv._project.arc
       assert.deepEqual(arc.esbuild, [
-        ['external', 'aws-sdk', 'prisma'],
-        ['buildDirectory', '.esbuild'],
+        ['external', 'aws-sdk', '@prisma/client'],
+        ['configFile', 'esbuild.js'],
       ])
     })
   })
 
-  describe('cloudformation packaging', () => {
-    it('changes the code uri from a `src/` path to a `dist` path', async () => {
+  describe('start', () => {
+    it('it builds the lambda targets', async () => {
       const inventory = await makeInventory({ deployStage: 'production' })
-      const arc = inventory.inv._project.arc
-
-      // blows up with "ReferenceError: @architect/package can only be used with a valid deploy stage set"
-      const cloudformation = pkg(inventory)
-
-      const result = await plugin.deploy.start({ arc, cloudformation, inventory })
-      const code = result.Resources.FooEventLambda.Properties.CodeUri
-      const expected = join('.esbuild', 'events', 'foo')
-      assert.include(code, expected)
-    })
-  })
-
-  describe('sandbox integration', () => {
-    beforeEach(function () {
-      this.timeout(15000)
-    })
-
-    it('compiles function typescript code into JS on startup and removes compiled JS on shutdown', async () => {
-      const inventory = await makeInventory({ deployStage: 'production' })
-      const arc = inventory.inv._project.arc
-
-      await plugin.sandbox.start({ arc, inventory })
-      const jsFiles = await glob('./src/**/*.js', { ignore: './src/**/node_modules/**' })
-      assert.includeMembers(jsFiles, [
-        './src/events/foo/index.js',
-        './src/http/get-hi/index.js',
-        './src/http/get-index/index.js',
-      ])
-      await plugin.sandbox.end({ arc, inventory })
-      for (const file of jsFiles) {
-        assert.isFalse(fs.existsSync(file))
-      }
-      const sourceFiles = [
-        './src/events/foo/index.ts',
-        './src/http/get-hi/index.tsx',
-        './src/http/get-index/index.ts',
+      await plugin.deploy.start({ inventory })
+      const buildTargets = [
+        './.esbuild/events/foo/index.js',
+        './.esbuild/http/get-hi/index.js',
+        './.esbuild/http/get-index/index.js',
       ]
-      for (const file of sourceFiles) {
-        assert.isTrue(fs.existsSync(file))
+      for (const file of buildTargets) {
+        assert.isTrue(fs.existsSync(file), `cannot find ${file}`)
       }
     })
   })

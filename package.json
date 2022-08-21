@@ -18,7 +18,7 @@
     "lint": "tsc && eslint lib/**/*.ts",
     "format": "eslint lib/**/*.ts --fix",
     "clean": "rm -rf dist-ts dist",
-    "build": "npm run clean && tsc -p tsconfig-build.json && rollup -c && node -r esbuild-register bundle-types",
+    "build": "npm run clean && tsc -p tsconfig-build.json && rollup -c",
     "prepublishOnly": "npm run build",
     "semantic-release": "semantic-release"
   },
@@ -31,9 +31,7 @@
   "license": "MIT",
   "dependencies": {
     "@architect/utils": "^3.1.2",
-    "fs-extra": "^10.1.0",
-    "glob": "^8.0.3",
-    "node-watch": "^0.7.3"
+    "fs-extra": "^10.1.0"
   },
   "peerDependencies": {
     "esbuild": "^0.14.49 || ^0.15.0"
@@ -41,11 +39,9 @@
   "devDependencies": {
     "@architect/functions": "5.2.1",
     "@architect/inventory": "3.2.2",
-    "@architect/package": "8.1.4",
-    "@microsoft/api-extractor": "7.29.3",
+    "@tsconfig/node14": "^1.0.3",
     "@types/chai": "4.3.3",
     "@types/fs-extra": "9.0.13",
-    "@types/glob": "7.2.0",
     "@types/mocha": "9.1.1",
     "@types/node": "18.6.3",
     "@typescript-eslint/eslint-plugin": "5.33.1",
