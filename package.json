@@ -39,7 +39,7 @@
   "devDependencies": {
     "@architect/functions": "5.2.1",
     "@architect/inventory": "3.2.2",
-    "@tsconfig/node14": "^1.0.3",
+    "@tsconfig/node14": "1.0.3",
     "@types/chai": "4.3.3",
     "@types/fs-extra": "9.0.13",
     "@types/mocha": "9.1.1",
