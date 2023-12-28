@@ -46,7 +46,7 @@
     "@types/node": "20.10.5",
     "@typescript-eslint/eslint-plugin": "5.62.0",
     "@typescript-eslint/parser": "5.62.0",
-    "chai": "4.3.10",
+    "chai": "5.0.0",
     "esbuild": "0.15.18",
     "esbuild-register": "3.5.0",
     "eslint": "8.56.0",
