@@ -37,7 +37,7 @@
     "esbuild": "^0.14.49 || ^0.15.0"
   },
   "devDependencies": {
-    "@architect/functions": "5.2.3",
+    "@architect/functions": "7.0.0",
     "@architect/inventory": "4.0.0",
     "@tsconfig/node14": "14.1.0",
     "@types/chai": "4.3.11",
