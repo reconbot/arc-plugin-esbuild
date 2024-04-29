@@ -38,7 +38,7 @@
   },
   "devDependencies": {
     "@architect/functions": "5.2.3",
-    "@architect/inventory": "4.0.4",
+    "@architect/inventory": "4.0.5",
     "@tsconfig/node14": "14.1.2",
     "@types/chai": "4.3.14",
     "@types/fs-extra": "9.0.13",
