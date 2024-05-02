@@ -40,7 +40,7 @@
     "@architect/functions": "5.2.3",
     "@architect/inventory": "4.0.5",
     "@tsconfig/node14": "14.1.2",
-    "@types/chai": "4.3.14",
+    "@types/chai": "4.3.15",
     "@types/fs-extra": "9.0.13",
     "@types/mocha": "10.0.6",
     "@types/node": "20.12.8",
