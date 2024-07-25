@@ -48,7 +48,7 @@
     "@typescript-eslint/parser": "5.62.0",
     "chai": "5.1.1",
     "esbuild": "0.15.18",
-    "esbuild-register": "3.5.0",
+    "esbuild-register": "3.6.0",
     "eslint": "8.57.0",
     "mocha": "10.7.0",
     "rollup": "2.79.1",
