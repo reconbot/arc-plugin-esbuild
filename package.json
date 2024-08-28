@@ -30,7 +30,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@architect/utils": "^3.1.2",
+    "@architect/utils": "^4.0.0",
     "fs-extra": "^10.1.0"
   },
   "peerDependencies": {
