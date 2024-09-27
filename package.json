@@ -52,7 +52,7 @@
     "eslint": "8.57.1",
     "mocha": "10.7.3",
     "rollup": "2.79.2",
-    "semantic-release": "24.1.1",
+    "semantic-release": "24.1.2",
     "typescript": "5.1.6"
   },
   "mocha": {
