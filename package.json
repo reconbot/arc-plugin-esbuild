@@ -50,7 +50,7 @@
     "esbuild": "0.15.18",
     "esbuild-register": "3.6.0",
     "eslint": "8.57.1",
-    "mocha": "11.0.1",
+    "mocha": "11.1.0",
     "rollup": "2.79.2",
     "semantic-release": "24.2.1",
     "typescript": "5.1.6"
